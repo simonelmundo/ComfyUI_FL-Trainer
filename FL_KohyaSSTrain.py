@@ -97,9 +97,14 @@ class FL_KohyaSSTrain:
 
         # Generate the config to get the output directory
         config = FL_train_core.generate_kohya_ss_config(kwargs)
+        
+        # Override the output directory
+        config["train_config"]["output_dir"] = os.path.join("/tmp/stable-diffusion-models/lora")
+        os.makedirs(config["train_config"]["output_dir"], exist_ok=True)
+        
         output_dir = config["train_config"]["output_dir"]
 
-        # Call the training function
+        # Call the training function with modified config
         FL_train_core.FL_KohyaSSTrain_call(kwargs)
 
         # After training, find the most recent .safetensors file
