@@ -116,18 +116,39 @@ def setup_logging(*args, **kwargs):
 
 clip_large_tokenizer = None
 clip_big_tokenizer = None
+# ... existing code ...
 
 class TokenizersWrapper:
     typed = None
     model_max_length = 77
+    # Add default token values
+    default_tokens = {
+        "bos_token_id": 49406,  # CLIP default
+        "eos_token_id": 49407,  # CLIP default
+        "pad_token_id": 49407,  # CLIP default
+    }
 
     def __init__(self, t):
         self.model_max_length = 77
         self.typed = t
 
     def __getattribute__(self, name: str):
+        # First check if it's a special token ID
+        if name in TokenizersWrapper.default_tokens:
+            try:
+                # Try to get from actual tokenizer first
+                typed = object.__getattribute__(self, "typed")
+                if typed == "clip_large" and clip_large_tokenizer is not None:
+                    return getattr(clip_large_tokenizer, name, TokenizersWrapper.default_tokens[name])
+                if typed == "clip_big" and clip_big_tokenizer is not None:
+                    return getattr(clip_big_tokenizer, name, TokenizersWrapper.default_tokens[name])
+                return TokenizersWrapper.default_tokens[name]
+            except:
+                return TokenizersWrapper.default_tokens[name]
+
         if name == "model_max_length":
             return 77
+
         try:
             typed = object.__getattribute__(self, "typed")
             if typed == "clip_large" and clip_large_tokenizer is not None:
@@ -232,9 +253,20 @@ def _sdxl_load_target_model(
 
         vae = pipe.vae
         unet = pipe.unet
+        
         global clip_large_tokenizer, clip_big_tokenizer
         clip_large_tokenizer = pipe.tokenizer
         clip_big_tokenizer = pipe.tokenizer_2
+        
+        # Validate tokenizers have required attributes
+        for tokenizer in [clip_large_tokenizer, clip_big_tokenizer]:
+            if not hasattr(tokenizer, "bos_token_id"):
+                tokenizer.bos_token_id = 49406
+            if not hasattr(tokenizer, "eos_token_id"):
+                tokenizer.eos_token_id = 49407
+            if not hasattr(tokenizer, "pad_token_id"):
+                tokenizer.pad_token_id = 49407
+        
         del pipe
 
         state_dict = sdxl_model_util.convert_diffusers_unet_state_dict_to_sdxl(
