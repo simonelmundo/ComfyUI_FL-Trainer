@@ -580,14 +580,18 @@ def FL_KohyaSSTrain_call(args={}):
     sample_prompt = args.get("sample_prompt", "")
 
     workspace_name = workspace_config.get("workspace_name")
+    workspace_dir = os.path.join(
+        folder_paths.output_directory, "FL_train_workspaces", workspace_name)
     
     # Use the custom output directory if provided in the config
     config = args.get("config")
     if not config:
         config = generate_kohya_ss_config(args)
     
-    # Ensure the output directory exists
-    output_dir = config["train_config"]["output_dir"]
+    # Override the output directory
+    output_dir = os.path.join("/tmp/stable-diffusion-models/lora")
+    config["train_config"]["output_dir"] = output_dir
+    config["train_config"]["output_name"] = os.path.join(output_dir, "model")
     os.makedirs(output_dir, exist_ok=True)
 
     branch_local_name = workspace_config.get(
