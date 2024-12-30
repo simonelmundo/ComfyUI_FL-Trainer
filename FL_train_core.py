@@ -576,7 +576,7 @@ def FL_KohyaSSTrain_call(args={}):
     args = args.copy()
     workspace_config = args.get("workspace_config").copy()
     base_lora = args.get("base_lora", "empty")
-    sample_generate = args.get("sample_generate", "enable")
+    sample_generate = "disable"
     sample_prompt = args.get("sample_prompt", "")
 
     workspace_name = workspace_config.get("workspace_name")
@@ -588,10 +588,13 @@ def FL_KohyaSSTrain_call(args={}):
     if not config:
         config = generate_kohya_ss_config(args)
     
-    # Override the output directory
+    # Override the output directory but maintain the original naming pattern
     output_dir = os.path.join("/tmp/stable-diffusion-models/lora")
+    datetime_str = time.strftime("%Y%m%d_%H%M%S", time.localtime())
+    output_name = f"{workspace_name}_{config['metadata']['train_type']}_{datetime_str}"
+    
     config["train_config"]["output_dir"] = output_dir
-    config["train_config"]["output_name"] = os.path.join(output_dir, "model")
+    config["train_config"]["output_name"] = output_name
     os.makedirs(output_dir, exist_ok=True)
 
     branch_local_name = workspace_config.get(
