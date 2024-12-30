@@ -586,7 +586,8 @@ def FL_KohyaSSTrain_call(args={}):
     if not os.path.exists(workspace_dir):
         raise Exception(f": {workspace_dir}")
 
-    config = generate_kohya_ss_config(args)
+    # Use provided config if it exists, otherwise generate new one
+    config = args.get("config") or generate_kohya_ss_config(args)
 
     branch_local_name = workspace_config.get(
         "branch_local_name", "kohya_ss_lora")
