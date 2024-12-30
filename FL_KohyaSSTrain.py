@@ -99,10 +99,13 @@ class FL_KohyaSSTrain:
         config = FL_train_core.generate_kohya_ss_config(kwargs)
         
         # Override the output directory
-        config["train_config"]["output_dir"] = os.path.join("/tmp/stable-diffusion-models/lora")
-        os.makedirs(config["train_config"]["output_dir"], exist_ok=True)
-        
-        output_dir = config["train_config"]["output_dir"]
+        output_dir = os.path.join("/tmp/stable-diffusion-models/lora")
+        config["train_config"]["output_dir"] = output_dir
+        config["train_config"]["output_name"] = os.path.join(output_dir, "model")
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Pass the modified config back to kwargs
+        kwargs["config"] = config
 
         # Call the training function with modified config
         FL_train_core.FL_KohyaSSTrain_call(kwargs)
