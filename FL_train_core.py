@@ -580,14 +580,15 @@ def FL_KohyaSSTrain_call(args={}):
     sample_prompt = args.get("sample_prompt", "")
 
     workspace_name = workspace_config.get("workspace_name")
-    workspace_dir = os.path.join(
-        folder_paths.output_directory, "FL_train_workspaces", workspace_name)
-
-    if not os.path.exists(workspace_dir):
-        raise Exception(f": {workspace_dir}")
-
-    # Use provided config if it exists, otherwise generate new one
-    config = args.get("config") or generate_kohya_ss_config(args)
+    
+    # Use the custom output directory if provided in the config
+    config = args.get("config")
+    if not config:
+        config = generate_kohya_ss_config(args)
+    
+    # Ensure the output directory exists
+    output_dir = config["train_config"]["output_dir"]
+    os.makedirs(output_dir, exist_ok=True)
 
     branch_local_name = workspace_config.get(
         "branch_local_name", "kohya_ss_lora")
